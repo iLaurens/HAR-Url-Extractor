@@ -1,0 +1,8 @@
+A friend of mine uses the Firefox plugin ConsoleExport for Firebug
+that allows him to export a HAR file with data about the loading
+of a page. He wanted to get a sorted list of all the object urls
+for that saved page load result. However he didn't want to do that
+manually. That's why I created this simple parser.
+
+The extension in question can be found here:
+http://www.softwareishard.com/blog/consoleexport/
