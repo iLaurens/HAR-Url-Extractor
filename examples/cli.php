@@ -33,7 +33,7 @@
  */
 
 // Load parser class
-require "parser.php";
+require "../lib/parser.php";
 
 // Is CLI?
 if(PHP_SAPI !== 'cli') {
