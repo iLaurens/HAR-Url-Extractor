@@ -1,8 +1,9 @@
+#!/usr/bin/php
 <?php
 /*
  * HAR Url Extractor - Extracts object urls from HAR files.
  *
- * parser.php - Main parser class
+ * cli.php - Usage example for CLI
  *
  * Copyright (c) 2012, Johan Hedberg <mail@johan.pp.se>
  * All rights reserved.
@@ -31,50 +32,46 @@
  *
  */
 
-class HAR_Url_Extractor {
+// Load parser class
+require "parser.php";
 
-	static function Extract_Urls($raw_data) {
+// Is CLI?
+if(PHP_SAPI !== 'cli') {
+	die("Not running via CLI, this script only supports CLI!\n");
+	exit(1);
+}
 
-		// Check $raw_data
-		if(empty($raw_data)) {
-			throw new Exception('Empty input data');
-		}
+// Define usage function
+function my_usage() {
+	echo "Usage: cli.php <filename.har>\n";
+	exit(1);
+}
 
-		// Decode JSON
-		$decoded = json_decode($raw_data);
-		if( ($decoded == NULL) || ($decoded === FALSE) ) {
-			throw new Exception('Error decoding JSON');
-		}
+// Check argument
+if( !is_array($argv) || !isset($argv[1]) || empty($argv[1]) ) {
+	my_usage();
+}
+$filename = $argv[1];
+if ( !file_exists($filename) || !is_readable($filename) ) {
+	die("File does not exist, or isn't readable!\n");
+	exit(1);
+}
 
-		// Verify data
-		if( !isset($decoded->log) || !isset($decoded->log->entries) || !is_array($decoded->log->entries) ) {
-			throw new Exception('Decoded data has incorrect format');
-		}
+// Get data
+$data = file_get_contents($filename);
+if(empty($data)) {
+	die("File empty!\n");
+}
 
-		// Initialize vars
-		$urls = array();
-		$i = 0;
+// Parse out urls
+try {
+	$urls = HAR_Url_Extractor::Extract_Urls($data);
+}
+catch (Exception $e) {
+	echo "Caught exception: " . $e->getMessage() . "\n";
+	exit(1);
+}
 
-		// Extract urls
-		foreach($decoded->log->entries as $entry) {
-			$url = $entry->request->url;
-			$domain = preg_replace('/^https?:\/\/([^\/]+)\/?.*$/', '\1', $url);
-			$urls[$domain . '_' . $i] = $url;
-			++$i;
-		}
-
-		// How many urls?
-		if( $i == 0 ) {
-			throw new Exception('No urls found');
-		}
-
-		// Sort by domain in alphabetical order
-		sort($urls);
-
-		// Return as array
-		return $urls;
-
-	}
-
-};
-
+// Print urls
+echo "Below are the object urls found in HAR file.\n\n\n";
+print_r($urls);
